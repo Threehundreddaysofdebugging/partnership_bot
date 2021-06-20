@@ -4,7 +4,10 @@ import tweepy
 import math
 # -*- coding: utf-8 -*-
 
-bot = telebot.TeleBot('1843912485:AAHt1X-7HCYS890hCqpwkdNsvGUxIYuhECw')
+with open('TOKEN.txt') as t:
+	TOKEN = t.readline()
+
+bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
