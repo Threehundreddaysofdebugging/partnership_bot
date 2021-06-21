@@ -11,7 +11,7 @@ bot = telebot.TeleBot(TOKEN)
 
 try:
     with open('users.json', 'r') as f:
-        users = json.loads(f)
+        users = json.load(f)
 except FileNotFoundError:
     users = {}
 user_step = {}
@@ -20,7 +20,8 @@ markup = types.InlineKeyboardMarkup(row_width=1)
 retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
 like = types.InlineKeyboardButton('Лайк', callback_data='like0')
 sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
-markup.add(retweet, like, sub)
+tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
+markup.add(retweet, like, sub, tweet)
 
 
 @bot.message_handler(commands=['start'])
