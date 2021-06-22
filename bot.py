@@ -61,7 +61,7 @@ def cooper(message):
 
 @bot.message_handler(commands=['rules'])
 def rule(message):
-    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. 2. Твит без высказываний с разжиганием ненависти. 3. Твит не должен содержать порнографические материалы."
+    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. 2. Твит без высказываний с разжиганием ненависти. 3. Твит не должен содержать порнографические материалы. Если ваша заявка будет отклонена, то вы будете оповещены об этом."
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
@@ -74,7 +74,7 @@ def help(message):
                 "не менее /сколько то/ тысяч подписчиков и обратиться к модераторам бота со всеми доказательствами. " \
                 "Если ваш аккаунт подтвержден, то вам будет доступен раздел покупок и вы сможете просматривать заявки." \
                 " Бот не требует пароль от вашего аккаунта. Для обратной связи и предложений, а также подтверждения " \
-                "аккаунта, напишите /feedback Для правил по которым происходит рассмотрение заявки введите /rules \n /sell"
+                "аккаунта, напишите /feedback Для правил по которым происходит рассмотрение заявки введите /rules \n"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
@@ -90,10 +90,10 @@ def get_text_messages(message):
     if user_step[message.chat.id] == -1:
         introduce(message)
         return
-    if user_step[message.chat.id] != 1:
+    elif user_step[message.chat.id] != 1:
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
-    if "https://twitter.com/" in message.text:
+    elif "https://twitter.com/" in message.text:
         bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
                          reply_markup=markup)
     else:
