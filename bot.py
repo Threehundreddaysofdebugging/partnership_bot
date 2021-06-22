@@ -30,7 +30,7 @@ def start(message):
 @bot.message_handler(commands=['sell'])
 def sell(message):
     if user_step[message.chat.id] != 0:
-        bot.send_message(message.chat.id, 'не так быстро, для начала вызовите предствьтесь')
+        bot.send_message(message.chat.id, 'Не так быстро, для начала предствьтесь!')
         return
     send_mess = "Ознакомьтесь с правилами для одобрения заявки, а затем отправьте ссылку на ваш твит."
     user_step[message.chat.id] = 1
