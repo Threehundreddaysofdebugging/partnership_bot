@@ -16,14 +16,6 @@ except FileNotFoundError:
     users = {}
 user_step = {}
 
-markup = types.InlineKeyboardMarkup(row_width=1)
-retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
-like = types.InlineKeyboardButton('Лайк', callback_data='like0')
-sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
-tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
-markup.add(retweet, like, sub, tweet)
-
-
 @bot.message_handler(commands=['start'])
 def start(message):
     send_mess = "<b>Здравствуйте! Я был создан для покупки и продажи услуг в социальной сети Twiter." \
@@ -55,8 +47,11 @@ def feedback(message):
 
 @bot.message_handler(commands=['cooper'])
 def cooper(message):
+    markup1 = types.InlineKeyboardMarkup()
+    rov = types.InlineKeyboardButton(text='РОВЕРЗЕТ', url='https://twitter.com/roverzet')
+    markup1.add(rov)
     send_mess = "С нами сотрудничают:"
-    bot.send_message(message.chat.id, send_mess, parse_mode='html')
+    bot.send_message(message.chat.id, send_mess, parse_mode='html', reply_markup=markup1)
 
 
 @bot.message_handler(commands=['rules'])
@@ -87,6 +82,13 @@ def introduce(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
+    like = types.InlineKeyboardButton('Лайк', callback_data='like0')
+    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
+    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
+    markup.add(retweet, like, sub, tweet)
+
     if user_step[message.chat.id] == -1:
         introduce(message)
         return
@@ -94,8 +96,7 @@ def get_text_messages(message):
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
     elif "https://twitter.com/" in message.text:
-        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
-                         reply_markup=markup)
+        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:", reply_markup=markup)
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
 
