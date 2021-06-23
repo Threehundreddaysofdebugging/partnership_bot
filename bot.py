@@ -86,7 +86,9 @@ def introduce(message):
     except FileNotFoundError:
         users = {}
     users[message.chat.id] = message.text
-    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
+    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит и действие с ним в формате:'\
+        ' https://twitter.com/user/0123456789876543210 Лайк'\
+        '              Возможные действия: Ретвит, Лайк, Твит, Подписка.')
     with open('users.json', 'w') as f:
         json.dump(users, f)
     user_step[message.chat.id] = 1
@@ -94,15 +96,15 @@ def introduce(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
-    like = types.InlineKeyboardButton('Лайк', callback_data='like0')
-    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
-    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
-    markup.add(retweet, like, sub, tweet)
+#    markup = types.InlineKeyboardMarkup(row_width=1)
+#    retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
+#    like = types.InlineKeyboardButton('Лайк', callback_data='like0')
+#    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
+#    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
+#    markup.add(retweet, like, sub, tweet)
 
     try:
-        with open('tweets.json', 'r') as f:
+        with open('tweets and actions.json', 'r') as f:
             users = json.load(f)
     except FileNotFoundError:
         users = {}
@@ -114,16 +116,15 @@ def get_text_messages(message):
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
     elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
-        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
-                         reply_markup=markup)  # TODO передача твита далее
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")
     elif "https://mobile.twitter.com/" in message.text: 
-        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
-                         reply_markup=markup)  
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")  
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
-    with open('tweets.json', 'w') as f:
+    with open('tweets and actions.json', 'w') as f:
         json.dump(users, f)
-    user_step[message.chat.id] = 1
+        user_step[message.chat.id] = 1
+
 
 @bot.message_handler(commands=['buy'])
 def buy(message):
