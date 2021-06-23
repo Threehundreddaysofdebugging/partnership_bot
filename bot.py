@@ -110,6 +110,9 @@ def get_text_messages(message):
     elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
         bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
                          reply_markup=markup)  # TODO передача твита далее
+    elif "https://mobile.twitter.com/" in message.text: 
+        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
+                         reply_markup=markup)  
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
 
