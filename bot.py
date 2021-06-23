@@ -1,6 +1,7 @@
+import json
+
 import telebot
 from telebot import types
-import json
 
 # -*- coding: utf-8 -*-
 
@@ -9,12 +10,8 @@ with open('TOKEN.txt') as t:
 
 bot = telebot.TeleBot(TOKEN)
 
-try:
-    with open('users.json', 'r') as f:
-        users = json.load(f)
-except FileNotFoundError:
-    users = {}
 user_step = {}
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -25,6 +22,11 @@ def start(message):
     bot.send_message(message.chat.id, "Представьтесь и вы!", parse_mode='html')
 
     user_step[message.chat.id] = -1
+
+
+@bot.message_handler(commands=['back'])
+def back(message):
+    pass  # TODO возврат на предыдущий шаг или в начало
 
 
 @bot.message_handler(commands=['sell'])
@@ -56,7 +58,10 @@ def cooper(message):
 
 @bot.message_handler(commands=['rules'])
 def rule(message):
-    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. 2. Твит без высказываний с разжиганием ненависти. 3. Твит не должен содержать порнографические материалы. Если ваша заявка будет отклонена, то вы будете оповещены об этом."
+    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. " \
+                "\n2. Твит без высказываний с разжиганием ненависти. \n" \
+                "3. Твит не должен содержать порнографические материалы. Если ваша заявка будет отклонена, " \
+                "то вы будете оповещены об этом."
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
@@ -64,19 +69,26 @@ def rule(message):
 def help(message):
     send_mess = "Я был создан для покупки ретвитов и лайков у популярных твиттерских. Если вы покупаете услугу," \
                 " то вы должны подать заявку с указанием точного твита и действий с ним. Заявка будет рассмотрена " \
-                "модераторами и при одобрении будет предлагаться твиттерским некоторое время, после чего будет деактивирована." \
-                " Если вы продаете услугу, то ваш аккаунт должен быть подтвержден. Для подтверждения вам следует иметь " \
-                "не менее /сколько то/ тысяч подписчиков и обратиться к модераторам бота со всеми доказательствами. " \
-                "Если ваш аккаунт подтвержден, то вам будет доступен раздел покупок и вы сможете просматривать заявки." \
-                " Бот не требует пароль от вашего аккаунта. Для обратной связи и предложений, а также подтверждения " \
-                "аккаунта, напишите /feedback Для правил по которым происходит рассмотрение заявки введите /rules \n"
+                "модераторами и при одобрении будет предлагаться твиттерским некоторое время, после чего будет" \
+                " деактивирована. Если вы продаете услугу, то ваш аккаунт должен быть подтвержден. Для подтверждения" \
+                " вам следует иметь не менее /сколько то/ тысяч подписчиков и обратиться к модераторам бота со всеми" \
+                " доказательствами. Если ваш аккаунт подтвержден, то вам будет доступен раздел покупок и вы сможете" \
+                " просматривать заявки. Бот не требует пароль от вашего аккаунта. Для обратной связи и предложений," \
+                " а также подтверждения аккаунта, напишите /feedback Для правил по которым происходит рассмотрение " \
+                "заявки введите /rules"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
 def introduce(message):
+    try:
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
     users[message.chat.id] = message.text
-    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированны. Отправьте ссылку на'
-                                      ' рекламируемый твит')
+    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
+    with open('users.json', 'w') as f:
+        json.dump(users, f)
     user_step[message.chat.id] = 1
 
 
@@ -95,16 +107,14 @@ def get_text_messages(message):
     elif user_step[message.chat.id] != 1:
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
-    elif "https://twitter.com/" in message.text:
-        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:", reply_markup=markup)
+    elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
+        bot.send_message(message.from_user.id, "Выберите действие, которое следует выполнить с твитом:",
+                         reply_markup=markup)  # TODO передача твита далее
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
 
 
-try: 
-    bot.polling(none_stop=True, interval=0)
+try:
+    bot.polling(none_stop=True)
 except Exception:
     pass
-
-with open('users.json', 'w') as f:
-    json.dump(users, f)
