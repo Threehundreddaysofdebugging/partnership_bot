@@ -101,6 +101,12 @@ def get_text_messages(message):
     tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
     markup.add(retweet, like, sub, tweet)
 
+    try:
+        with open('tweets.json', 'r') as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
+    users[message.chat.id] = message.text
     if user_step[message.chat.id] == -1:
         introduce(message)
         return
@@ -115,6 +121,18 @@ def get_text_messages(message):
                          reply_markup=markup)  
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
+    with open('tweets.json', 'w') as f:
+        json.dump(users, f)
+    user_step[message.chat.id] = 1
+
+@bot.message_handler(commands=['buy'])
+def buy(message):
+    markup3 = types.InlineKeyboardMarkup(row_width=1)
+    tweet = types.InlineKeyboardButton('Продолжить', callback_data='con')
+    markup3.add(con)
+
+    send_mess = "Для продолжения, ваш аккаунт должен быть подтвержден. Для подтверждения обратитесь к модератору по команде /feedback. Если ваш аккаунт уже подтвержден, просто нажмите кнопку ниже."
+    bot.send_message(message.chat.id, send_mess, parse_mode='html', reply_markup=markup3)
 
 
 try:
