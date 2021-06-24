@@ -12,7 +12,6 @@ bot = telebot.TeleBot(TOKEN)
 
 user_step = {}
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     send_mess = "<b>Здравствуйте! Я был создан для покупки и продажи услуг в социальной сети Twiter." \
@@ -22,11 +21,6 @@ def start(message):
     bot.send_message(message.chat.id, "Представьтесь и вы!", parse_mode='html')
 
     user_step[message.chat.id] = -1
-
-
-@bot.message_handler(commands=['back'])
-def back(message):
-    pass  # TODO возврат на предыдущий шаг или в начало
 
 
 @bot.message_handler(commands=['sell'])
@@ -86,9 +80,7 @@ def introduce(message):
     except FileNotFoundError:
         users = {}
     users[message.chat.id] = message.text
-    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит и действие с ним в формате:'\
-        ' https://twitter.com/user/0123456789876543210 Лайк'\
-        '              Возможные действия: Ретвит, Лайк, Твит, Подписка.')
+    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
     with open('users.json', 'w') as f:
         json.dump(users, f)
     user_step[message.chat.id] = 1
@@ -116,11 +108,20 @@ def get_text_messages(message):
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
     elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")
+        bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")
     elif "https://mobile.twitter.com/" in message.text: 
+        bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")  
+        
+    elif "Лайк" in message.text: 
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
+    elif "Твит" in message.text: 
         bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")  
+    elif "Ретвит" in message.text: 
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
+    elif "Подписка" in message.text: 
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
     else:
-        bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
+        bot.send_message(message.chat.id, 'Это не корректная ссылка, либо действие. Попробуйте снова.')
     with open('tweets and actions.json', 'w') as f:
         json.dump(users, f)
         user_step[message.chat.id] = 1
