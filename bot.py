@@ -18,21 +18,16 @@ def start(message):
                 " Вот что я умею:</b>"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
     help(message)
-    bot.send_message(message.chat.id, "Представьтесь и вы!", parse_mode='html')
-
-    user_step[message.chat.id] = -1
+    user_step[message.chat.id] = -2
 
 
 @bot.message_handler(commands=['sell'])
 def sell(message):
-    if user_step[message.chat.id] != 0:
-        bot.send_message(message.chat.id, 'Не так быстро, для начала предствьтесь!')
-        return
-    send_mess = "Ознакомьтесь с правилами для одобрения заявки, а затем отправьте ссылку на ваш твит."
+    send_mess = "Ознакомьтесь с правилами для одобрения заявки, а затем представтесь."
     user_step[message.chat.id] = 1
     bot.send_message(message.chat.id, send_mess)
-    bot.send_message(message.chat.id, 'Правила:')
     rule(message)
+    user_step[message.chat.id] = -1
 
 
 @bot.message_handler(commands=['feedback'])
@@ -40,6 +35,10 @@ def feedback(message):
     send_mess = "Для обратной связи обратитесь к @аккаунт главного модератора"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
+@bot.message_handler(commands=['buy'])
+def buy(message):
+    send_mess = "///"
+    bot.send_message(message.chat.id, send_mess, parse_mode='html') 
 
 @bot.message_handler(commands=['cooper'])
 def cooper(message):
@@ -105,13 +104,13 @@ def get_text_messages(message):
         introduce(message)
         return
     elif user_step[message.chat.id] != 1:
-        bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
+        bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите  нужную вам команду.')
         return
     elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
         bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")
     elif "https://mobile.twitter.com/" in message.text: 
         bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")  
-        
+
     elif "Лайк" in message.text: 
         bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
     elif "Твит" in message.text: 
@@ -125,17 +124,6 @@ def get_text_messages(message):
     with open('tweets and actions.json', 'w') as f:
         json.dump(users, f)
         user_step[message.chat.id] = 1
-
-
-@bot.message_handler(commands=['buy'])
-def buy(message):
-    markup3 = types.InlineKeyboardMarkup(row_width=1)
-    tweet = types.InlineKeyboardButton('Продолжить', callback_data='con')
-    markup3.add(con)
-
-    send_mess = "Для продолжения, ваш аккаунт должен быть подтвержден. Для подтверждения обратитесь к модератору по команде /feedback. Если ваш аккаунт уже подтвержден, просто нажмите кнопку ниже."
-    bot.send_message(message.chat.id, send_mess, parse_mode='html', reply_markup=markup3)
-
 
 try:
     bot.polling(none_stop=True)
