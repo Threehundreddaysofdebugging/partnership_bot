@@ -37,8 +37,9 @@ def feedback(message):
 
 @bot.message_handler(commands=['buy'])
 def buy(message):
-    send_mess = "///"
-    bot.send_message(message.chat.id, send_mess, parse_mode='html') 
+    doc = open('Путь к файлу', 'rb')
+    bot.send_document(User ID рекламирующего, doc)
+    bot.send_document(User ID рекламирующего, "Имя файла с объектом рекламы.")`
 
 @bot.message_handler(commands=['cooper'])
 def cooper(message):
