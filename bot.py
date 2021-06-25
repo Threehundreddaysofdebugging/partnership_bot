@@ -12,22 +12,35 @@ bot = telebot.TeleBot(TOKEN)
 
 user_step = {}
 
+
 @bot.message_handler(commands=['start'])
 def start(message):
     send_mess = "<b>Здравствуйте! Я был создан для покупки и продажи услуг в социальной сети Twiter." \
                 " Вот что я умею:</b>"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
     help(message)
-    user_step[message.chat.id] = -2
+    bot.send_message(message.chat.id, "Представьтесь и вы!", parse_mode='html')
+
+    user_step[message.chat.id] = -1
+
+
+@bot.message_handler(commands=['back'])
+def back(message):
+    # TODO возврат на предыдущий шаг или в начало
+    if user_step[message.chat.id] > 0:
+        user_step[message.chat.id] -= 1
 
 
 @bot.message_handler(commands=['sell'])
 def sell(message):
-    send_mess = "Ознакомьтесь с правилами для одобрения заявки, а затем представтесь."
+    if user_step[message.chat.id] != 0:
+        bot.send_message(message.chat.id, 'Не так быстро, для начала предствьтесь!')
+        return
+    send_mess = "Ознакомьтесь с правилами для одобрения заявки, а затем отправьте ссылку на ваш твит."
     user_step[message.chat.id] = 1
     bot.send_message(message.chat.id, send_mess)
+    bot.send_message(message.chat.id, 'Правила:')
     rule(message)
-    user_step[message.chat.id] = -1
 
 
 @bot.message_handler(commands=['feedback'])
@@ -35,11 +48,6 @@ def feedback(message):
     send_mess = "Для обратной связи обратитесь к @аккаунт главного модератора"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
-@bot.message_handler(commands=['buy'])
-def buy(message):
-    doc = open('Путь к файлу', 'rb')
-    bot.send_document(User ID рекламирующего, doc)
-    bot.send_document(User ID рекламирующего, "Имя файла с объектом рекламы.")`
 
 @bot.message_handler(commands=['cooper'])
 def cooper(message):
@@ -80,10 +88,17 @@ def introduce(message):
     except FileNotFoundError:
         users = {}
     users[message.chat.id] = message.text
-    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
+    bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит и действие с ним в формате:'\
+        ' https://twitter.com/user/0123456789876543210 Лайк'\
+        '              Возможные действия: Ретвит, Лайк, Твит, Подписка.')
     with open('users.json', 'w') as f:
         json.dump(users, f)
     user_step[message.chat.id] = 1
+
+
+def is_correct_link(link):
+    user_id = link.split('status')[-1][1:20]
+
 
 
 @bot.message_handler(content_types=['text'])
@@ -94,6 +109,7 @@ def get_text_messages(message):
 #    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
 #    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
 #    markup.add(retweet, like, sub, tweet)
+    moder_id = 1802110885
 
     try:
         with open('tweets and actions.json', 'r') as f:
@@ -105,26 +121,30 @@ def get_text_messages(message):
         introduce(message)
         return
     elif user_step[message.chat.id] != 1:
-        bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите  нужную вам команду.')
+        bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите команду /sell')
         return
-    elif "https://twitter.com/" in message.text:  # TODO проверка на существование твита
-        bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")
-    elif "https://mobile.twitter.com/" in message.text: 
-        bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")  
-
-    elif "Лайк" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
-    elif "Твит" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")  
-    elif "Ретвит" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
-    elif "Подписка" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
+    elif "https://twitter.com/" in message.text or "https://mobile.twitter.com/" in message.text:
+        # TODO проверка на существование твита
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")
+        bot.send_message(moder_id, f'{users[message.chat.id]}\n{message.text}\n')
     else:
-        bot.send_message(message.chat.id, 'Это не корректная ссылка, либо действие. Попробуйте снова.')
+        bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
     with open('tweets and actions.json', 'w') as f:
         json.dump(users, f)
         user_step[message.chat.id] = 1
+
+
+@bot.message_handler(commands=['buy'])
+def buy(message):
+    markup3 = types.InlineKeyboardMarkup(row_width=1)
+    tweet = types.InlineKeyboardButton('Продолжить', callback_data='con')
+    markup3.add(con)
+
+    send_mess = "Для продолжения, ваш аккаунт должен быть подтвержден. Для подтверждения обратитесь к модератору по команде /feedback. Если ваш аккаунт уже подтвержден, просто нажмите кнопку ниже."
+    bot.send_message(message.chat.id, send_mess, parse_mode='html', reply_markup=markup3)
+
 
 try:
     bot.polling(none_stop=True)
