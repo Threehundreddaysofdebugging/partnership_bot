@@ -11,6 +11,7 @@ with open('TOKEN.txt') as t:
 bot = telebot.TeleBot(TOKEN)
 
 user_step = {}
+IS_MODER_STARTED = False
 
 
 @bot.message_handler(commands=['start'])
@@ -28,6 +29,21 @@ def back(message):
     if user_step[message.chat.id] > 0:
         user_step[message.chat.id] -= 1
 
+@bot.message_handler(commands=['buy'])
+def buy(message):
+    doc = open('Путь к файлу', 'rb')
+    bot.send_document('User ID рекламирующего', doc)
+    bot.send_document('User ID рекламирующего', "drakoneans.txt")
+
+
+@bot.message_handler(commands=['rules'])
+def rule(message):
+    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. " \
+                "\n2. Твит без высказываний с разжиганием ненависти. \n" \
+                "3. Твит не должен содержать порнографические материалы. Если ваша заявка будет отклонена, " \
+                "то вы будете оповещены об этом."
+    bot.send_message(message.chat.id, send_mess, parse_mode='html')
+
 
 @bot.message_handler(commands=['sell'])
 def sell(message):
@@ -35,12 +51,6 @@ def sell(message):
     bot.send_message(message.chat.id, send_mess)
     rule(message)
     user_step[message.chat.id] = -1
-
-@bot.message_handler(commands=['buy'])
-def buy(message):
-    doc = open('Путь к файлу', 'rb')
-    bot.send_document(User ID рекламирующего, doc)
-    bot.send_document(User ID рекламирующего, "drakoneans.txt")
 
 @bot.message_handler(commands=['feedback'])
 def feedback(message):
@@ -55,15 +65,6 @@ def cooper(message):
     markup1.add(rov)
     send_mess = "С нами сотрудничают:"
     bot.send_message(message.chat.id, send_mess, parse_mode='html', reply_markup=markup1)
-
-
-@bot.message_handler(commands=['rules'])
-def rule(message):
-    send_mess = "Правила для одобрения заявки модераторами: 1. Отсутствие экстремистских высказываний. " \
-                "\n2. Твит без высказываний с разжиганием ненависти. \n" \
-                "3. Твит не должен содержать порнографические материалы. Если ваша заявка будет отклонена, " \
-                "то вы будете оповещены об этом."
-    bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
 @bot.message_handler(commands=['help'])
@@ -97,23 +98,28 @@ def is_correct_link(link):
     user_id = link.split('status')[-1][1:20]
 
 
-
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-#    markup = types.InlineKeyboardMarkup(row_width=1)
-#    retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
-#    like = types.InlineKeyboardButton('Лайк', callback_data='like0')
-#    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
-#    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
-#    markup.add(retweet, like, sub, tweet)
-    moder_id = 1802110885
+    #    markup = types.InlineKeyboardMarkup(row_width=1)
+    #    retweet = types.InlineKeyboardButton('Ретвит', callback_data='retweet0')
+    #    like = types.InlineKeyboardButton('Лайк', callback_data='like0')
+    #    sub = types.InlineKeyboardButton('Подписка на автора', callback_data='sub0')
+    #    tweet = types.InlineKeyboardButton('Твит', callback_data='tweet0')
+    #    markup.add(retweet, like, sub, tweet)
+    moder_id="656371218"
+    action = 0
+    global IS_MODER_STARTED
 
     try:
         with open('tweets and actions.json', 'r') as f:
             users = json.load(f)
     except FileNotFoundError:
         users = {}
-    users[message.chat.id] = message.text
+
+    if message.chat.id == moder_id:
+        msg_id, status = message.text.split('\n')
+        bot.reply_to(msg_id, status)
+
     if user_step[message.chat.id] == -1:
         introduce(message)
         return
@@ -123,20 +129,30 @@ def get_text_messages(message):
     elif "https://twitter.com/" in message.text or "https://mobile.twitter.com/" in message.text:
         # TODO проверка на существование твита
         bot.send_message(message.from_user.id, "Введите действие. Возможные действия: Ретвит, Лайк, Твит, Подписка.")
-    elif "Лайк" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
-    elif "Твит" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")  
-    elif "Ретвит" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.") 
-    elif "Подписка" in message.text: 
-        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")
-        bot.send_message(moder_id, f'{users[message.chat.id]}\n{message.text}\n')
+        return
+    elif "лайк" in message.text.lower().strip():
+        action = "лайк"
+    elif "твит" in message.text.lower().strip():
+        action = "твит"
+    elif "ретвит" in message.text.lower().strip():
+        action = "ретвит"
+    elif "подписка" in message.text.lower().strip():
+        action = "подписка"
     else:
         bot.send_message(message.chat.id, 'Это не корректная ссылка, попробуйте другую')
+        return
+    print(action)
+    if action:
+        if not IS_MODER_STARTED:
+            bot.send_message(moder_id, '/start')
+            IS_MODER_STARTED = True
+            print("бот запущен")
+        bot.send_message(moder_id, f'{users[message.chat.id]}\n{message.text}\n{action}')
+        bot.send_message(message.from_user.id, "Ваша заявка принята в обработку.")
     with open('tweets and actions.json', 'w') as f:
         json.dump(users, f)
         user_step[message.chat.id] = 1
+
 
 try:
     bot.polling(none_stop=True)
