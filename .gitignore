@@ -3,5 +3,6 @@
 # $Id$
 #
 # a
-TOKEN.txt
-MODER_TOKEN.txt
+storage/TOKEN.txt
+storage/MODER_TOKEN.txt
+db
