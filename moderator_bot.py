@@ -26,12 +26,13 @@ def text(message):
     if message.chat.id in get_all_advertisers_id():
         if message.text == 'done':
             pass
-    elif message.from_user.username in moderators:
+    if message.from_user.username in moderators:
         repl_message = message.reply_to_message
         user_id = get_user_id(repl_message.text.split('\n')[0][12:])
         if message.text.lower() == 'ok':
             approve(user_id, True)
             task = get_task(user_id)
+            print(task.advertisers)
             for ader in task.advertisers:
                 name, link, action = take_data(user_id)
                 bot.send_message(ader.id, f'brand name: {name}\nlink: {link}\naction: {action}')

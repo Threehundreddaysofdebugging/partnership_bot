@@ -107,8 +107,10 @@ def make_available(user_id):
 
 
 def add_advertisers_to_task(user_id, advertisers):
-    task = get_task(user_id)
     db_sess = db_session.create_session()
-    task.advertisers
-    [task.advertisers.append(ader) for ader in advertisers]
+    task = db_sess.query(User).filter(User.id == user_id).one().task
+    for ader_name in advertisers:
+        ader = db_sess.query(Advertiser).filter(Advertiser.username == ader_name).one()
+        print(ader.username)
+        task.advertisers.append(ader)
     db_sess.commit()

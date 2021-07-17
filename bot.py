@@ -122,15 +122,16 @@ def get_text_messages(message):
         else:
             bot.send_message(message.chat.id, 'Это не корректное действие, попробуйте еще раз')
             return
-        # TODO заявка на оплату
-        #    bot.send_invoice(message.chat.id, 'title', 'description', 0,
-        #                  SHOPID, 'RUB', 0)
         add_action_to_task(message.chat.id, action)
         bot.send_message(message.chat.id, 'ader choise')
         user_step[message.chat.id] = 4
-
     elif user_step[message.chat.id] == 4:
         add_advertisers_to_task(message.chat.id, message.text.split('\n'))
+
+        # TODO заявка на оплату
+        #    bot.send_invoice(message.chat.id, 'title', 'description', 0,
+        #                  SHOPID, 'RUB', 0)
+        user_step[message.chat.id] = 5
     elif user_step[message.chat.id] == 5:
         bot.send_message(-1001514844359, f'{message.chat.id}')
 
