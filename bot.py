@@ -22,7 +22,7 @@ def start(message):
                 " Вот что я умею:</b>"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
     help(message)
-    user_step[message.chat.id] = 0
+    user_step[message.chat.id] = 4
 
 
 @bot.message_handler(commands=['back'])
@@ -98,12 +98,12 @@ def is_correct_link(link):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    action = 0
     if user_step[message.chat.id] == 0:
         bot.send_message(message.chat.id, 'Не так быстро, для начала вызовите нужную вам команду.')
     elif user_step[message.chat.id] == 1:
         introduce(message)
-        bot.send_message(message.chat.id, 'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
+        bot.send_message(message.chat.id,
+                         'Вы благополучно зарегестрированы. Отправьте ссылку на рекламируемый твит')
         user_step[message.chat.id] = 2
     elif user_step[message.chat.id] == 2:
         if "https://twitter.com/" in message.text or "https://mobile.twitter.com/" in message.text:
@@ -123,28 +123,34 @@ def get_text_messages(message):
             bot.send_message(message.chat.id, 'Это не корректное действие, попробуйте еще раз')
             return
         add_action_to_task(message.chat.id, action)
-        bot.send_message(message.chat.id, 'ader choise')
+        t = '/n'.join(get_all_advertisers_username())
+        bot.send_message(message.chat.id, t)
         user_step[message.chat.id] = 4
     elif user_step[message.chat.id] == 4:
         add_advertisers_to_task(message.chat.id, message.text.split('\n'))
-
+        amount = get_amount_by_advertisers(message.text.split('\n'))
         # TODO заявка на оплату
-        #    bot.send_invoice(message.chat.id, 'title', 'description', 0,
-        #                  SHOPID, 'RUB', 0)
+        bot.send_invoice(chat_id=message.chat.id,
+                         title='title',
+                         description='description',
+                         invoice_payload='123',
+                         provider_token=SHOPID,
+                         currency='RUB',
+                         prices=[telebot.types.LabeledPrice(amount=amount, label='руб')],
+                         start_parameter='test')
         user_step[message.chat.id] = 5
-    elif user_step[message.chat.id] == 5:
-        bot.send_message(-1001514844359, f'{message.chat.id}')
-
+    # elif user_step[message.chat.id] == 5:
+    #
+    #     bot.send_message(message.chat.id, 'заявка принята в работу')
+    #     bot.send_message(-1001514844359, f'{message.chat.id}')
     elif user_step[message.chat.id] == 11:
         register(message)
-        bot.send_message(message.chat.id, 'зарегестрировано\nданные для начисления')
+        bot.send_message(message.chat.id, 'зарегестрировано\nданные для начисления:')
         user_step[message.chat.id] = 12
     elif user_step[message.chat.id] == 12:
-        #TODO обработка банковских данных
+        # TODO обработка банковских данных
         bot.send_message(message.chat.id, 'u available')
         make_available(message.chat.id)
-
-
 
 
 @bot.channel_post_handler(content_types=['text'])
@@ -156,6 +162,19 @@ def text_post(message):
     bot.send_message(message.text, t)
 
 
+@bot.pre_checkout_query_handler(func=lambda query: True)
+def checkout(pre_checkout_query):
+    bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True,
+                                  error_message="что-то пошло не так, попробуйте через пару минут")
+
+
+@bot.message_handler(content_types=['successful_payment'])
+def got_payment(message):  # user_step == 5
+    bot.send_message(message.chat.id, 'заявка принята в работу')
+    bot.send_message(-1001514844359, f'{message.chat.id}')
+
+
 db_session.global_init("db/twee.db")
 print('я работаю')
+
 bot.polling(none_stop=True)

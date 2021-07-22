@@ -2,7 +2,7 @@
 import sqlalchemy as sa
 
 from data import db_session
-from data.advertiser import Advertiser
+from data.advertiser import Advertiser, update_cost
 from data.tasks import Task
 from data.users import User
 
@@ -99,6 +99,11 @@ def get_all_advertisers_id():
     return [_.id for _ in db_sess.query(Advertiser).all()]
 
 
+def get_all_advertisers_username():
+    db_sess = db_session.create_session()
+    return [_.username for _ in db_sess.query(Advertiser).all()]
+
+
 def make_available(user_id):
     db_sess = db_session.create_session()
     advertiser = db_sess.query(Advertiser).filter(Advertiser.id == user_id).one()
@@ -111,6 +116,22 @@ def add_advertisers_to_task(user_id, advertisers):
     task = db_sess.query(User).filter(User.id == user_id).one().task
     for ader_name in advertisers:
         ader = db_sess.query(Advertiser).filter(Advertiser.username == ader_name).one()
-        print(ader.username)
         task.advertisers.append(ader)
+    db_sess.commit()
+
+
+def get_amount_by_advertisers(advertisers):
+    amount = 0
+    db_sess = db_session.create_session()
+    for ader_name in advertisers:
+        ader = db_sess.query(Advertiser).filter(Advertiser.username == ader_name).one()
+        amount += ader.cost
+    return amount
+
+
+def update_advertisers_cost():
+    db_sess = db_session.create_session()
+    aders = db_sess.query(Advertiser).all()
+    for ader in aders:
+        ader.cost = update_cost(ader.username)
     db_sess.commit()
