@@ -11,7 +11,7 @@ with open('storage/SHOPID.txt') as s:
     SHOPID = s.readline()
 
 bot = telebot.TeleBot(TOKEN)
-bot.get_updates(allowed_updates=["channel_post", 'message'])
+bot.get_updates(allowed_updates=["channel_post", 'message', 'successful_payment', 'pre_checkout_query'])
 
 user_step = {}
 
@@ -22,7 +22,7 @@ def start(message):
                 " Вот что я умею:</b>"
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
     help(message)
-    user_step[message.chat.id] = 4
+    user_step[message.chat.id] = 0
 
 
 @bot.message_handler(commands=['back'])
@@ -92,6 +92,18 @@ def help(message):
     bot.send_message(message.chat.id, send_mess, parse_mode='html')
 
 
+@bot.pre_checkout_query_handler(func=lambda query: True)
+def checkout(pre_checkout_query):
+    bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True,
+                                  error_message="что-то пошло не так, попробуйте через пару минут")
+
+
+@bot.message_handler(content_types=['successful_payment'])
+def got_payment(message):  # user_step == 5
+    bot.send_message(message.chat.id, 'заявка принята в работу')
+    bot.send_message(-1001514844359, f'{message.chat.id}')
+
+
 def is_correct_link(link):
     user_id = link.split('status')[-1][1:20]
 
@@ -129,15 +141,15 @@ def get_text_messages(message):
     elif user_step[message.chat.id] == 4:
         add_advertisers_to_task(message.chat.id, message.text.split('\n'))
         amount = get_amount_by_advertisers(message.text.split('\n'))
-        # TODO заявка на оплату
         bot.send_invoice(chat_id=message.chat.id,
                          title='title',
                          description='description',
                          invoice_payload='123',
                          provider_token=SHOPID,
                          currency='RUB',
-                         prices=[telebot.types.LabeledPrice(amount=amount, label='руб')],
+                         prices=[telebot.types.LabeledPrice(amount=amount, label='реклама')],
                          start_parameter='test')
+        
         user_step[message.chat.id] = 5
     # elif user_step[message.chat.id] == 5:
     #
@@ -162,19 +174,8 @@ def text_post(message):
     bot.send_message(message.text, t)
 
 
-@bot.pre_checkout_query_handler(func=lambda query: True)
-def checkout(pre_checkout_query):
-    bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True,
-                                  error_message="что-то пошло не так, попробуйте через пару минут")
-
-
-@bot.message_handler(content_types=['successful_payment'])
-def got_payment(message):  # user_step == 5
-    bot.send_message(message.chat.id, 'заявка принята в работу')
-    bot.send_message(-1001514844359, f'{message.chat.id}')
-
-
 db_session.global_init("db/twee.db")
 print('я работаю')
 
+bot.skip_pending = True
 bot.polling(none_stop=True)

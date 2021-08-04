@@ -135,3 +135,12 @@ def update_advertisers_cost():
     for ader in aders:
         ader.cost = update_cost(ader.username)
     db_sess.commit()
+
+
+def done(user_id):
+    db_sess = db_session.create_session()
+    task = db_sess.query(User).filter(User.id == user_id).one().task
+    task.done = True
+    id = task.user_id
+    db_sess.commit()
+    return id

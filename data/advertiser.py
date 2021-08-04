@@ -7,7 +7,7 @@ from .db_session import SqlAlchemyBase
 
 def update_cost(username):
     # TODO подтягивание подписчиков
-    return 74 * 100  # TODO определение цены
+    return 100 * 100  # TODO определение цены
 
 
 class Advertiser(SqlAlchemyBase):

@@ -16,3 +16,4 @@ class Task(SqlAlchemyBase):
     approved = sqlalchemy.Column(sqlalchemy.Boolean)
     advertisers = orm.relationship('Advertiser', secondary=association_table, back_populates='tasks')
     user = orm.relationship('User', back_populates='task')
+    done = sqlalchemy.Column(sqlalchemy.Boolean)
